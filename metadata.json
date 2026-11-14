@@ -1,0 +1,6 @@
+{
+  "name": "CelToonz",
+  "description": "Web and mobile-first 2D flipbook animation studio with multi-layer cel drawing, onion skinning, and 24fps opaque WebM export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
