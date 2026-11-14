@@ -96,13 +96,29 @@ export function parseProjectFromJson(rawText: string): Project {
         }
       }
     }
+
+    const sb = f?.storyboard;
+    const cleanedStoryboard =
+      sb && typeof sb === 'object' && typeof sb.shotNumber === 'string'
+        ? {
+            shotId: typeof sb.shotId === 'string' ? sb.shotId : `shot-${idx + 1}`,
+            shotNumber: sb.shotNumber,
+            shotTitle: typeof sb.shotTitle === 'string' ? sb.shotTitle : sb.shotNumber,
+            subShotNumber: typeof sb.subShotNumber === 'string' ? sb.subShotNumber : undefined,
+            subShotTitle: typeof sb.subShotTitle === 'string' ? sb.subShotTitle : undefined,
+            camera: typeof sb.camera === 'string' ? sb.camera : undefined,
+            notes: typeof sb.notes === 'string' ? sb.notes : undefined,
+          }
+        : undefined;
+
     return {
       id: typeof f?.id === 'string' && f.id ? f.id : `frame-${idx + 1}`,
       duration:
         typeof f?.duration === 'number' && Number.isFinite(f.duration)
-          ? Math.max(1, Math.min(24, Math.round(f.duration)))
+          ? Math.max(1, Math.min(48, Math.round(f.duration)))
           : 1,
       cels: cleanedCels,
+      ...(cleanedStoryboard ? { storyboard: cleanedStoryboard } : {}),
     };
   });
 

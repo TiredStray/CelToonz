@@ -6,6 +6,7 @@ interface TopBarProps {
   canvasSizeLabel: string;
   onOpenNew: () => void;
   onLoadDemo: () => void;
+  onOpenCineGrid: () => void;
   onImportJson: () => void;
   onExportJson: () => void;
   onOpenExportWebm: () => void;
@@ -17,6 +18,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   canvasSizeLabel,
   onOpenNew,
   onLoadDemo,
+  onOpenCineGrid,
   onImportJson,
   onExportJson,
   onOpenExportWebm,
@@ -52,6 +54,13 @@ export const TopBar: React.FC<TopBarProps> = ({
           className="hover:text-[#F4F4F6] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 cursor-pointer py-1"
         >
           Demo Loop
+        </button>
+        <button
+          type="button"
+          onClick={onOpenCineGrid}
+          className="hover:text-[#F4F4F6] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 cursor-pointer py-1"
+        >
+          Hotshots JSON
         </button>
         <button
           type="button"

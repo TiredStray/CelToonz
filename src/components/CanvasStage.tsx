@@ -664,6 +664,24 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
         </button>
       </div>
 
+      {/* Top-Center Floating Storyboard Shot / SubShot HUD */}
+      {currentFrame?.storyboard && (
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          className="hidden sm:flex items-center gap-2 absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3 h-8 rounded-lg bg-[#1D1D21]/90 backdrop-blur-sm border border-[#32323A] text-xs pointer-events-none max-w-[42vw]"
+        >
+          <span className="font-mono-tabular font-semibold text-[#F59E0B] whitespace-nowrap">
+            {currentFrame.storyboard.shotNumber}
+            {currentFrame.storyboard.subShotNumber
+              ? ` · ${currentFrame.storyboard.subShotNumber}`
+              : ''}
+          </span>
+          <span className="text-[#E4E4E7] truncate">
+            {currentFrame.storyboard.subShotTitle || currentFrame.storyboard.shotTitle}
+          </span>
+        </div>
+      )}
+
       {/* Mobile Quick Frame Stepper Corners */}
       <div
         onPointerDown={(e) => e.stopPropagation()}

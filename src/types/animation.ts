@@ -16,10 +16,21 @@ export interface Layer {
   opacity: number; // 0 to 1
 }
 
+export interface StoryboardMeta {
+  shotId: string;
+  shotNumber: string; // e.g. "S01"
+  shotTitle: string;
+  subShotNumber?: string; // e.g. "1A"
+  subShotTitle?: string;
+  camera?: string;
+  notes?: string;
+}
+
 export interface Frame {
   id: string;
   duration: number; // exposure hold count (1 = 1/24s at 24fps)
   cels: Record<string, string | null>; // layerId -> PNG dataURL or null
+  storyboard?: StoryboardMeta;
 }
 
 export interface Project {
@@ -70,6 +81,26 @@ export interface ExportProgress {
   currentFrame: number;
   totalFrames: number;
   message?: string;
+}
+
+export interface CineGridParsedPanel {
+  shotId: string;
+  shotNumber: string;
+  shotTitle: string;
+  subShotNumber?: string;
+  subShotTitle?: string;
+  camera?: string;
+  notes?: string;
+  imageSrc?: string;
+  suggestedHoldFrames?: number;
+}
+
+export interface CineGridParseResult {
+  title: string;
+  aspectRatioHint?: string;
+  shotCount: number;
+  subShotCount: number;
+  panels: CineGridParsedPanel[];
 }
 
 export const CANVAS_PRESETS: CanvasPreset[] = [

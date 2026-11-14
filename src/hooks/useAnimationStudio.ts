@@ -183,6 +183,7 @@ export function useAnimationStudio() {
             ? Math.max(0, Math.min(prev.frames.length - 1, insertAfterIndex))
             : prev.currentFrameIndex;
 
+        const refFrame = prev.frames[at];
         const emptyCels: Record<string, string | null> = {};
         for (const l of prev.layers) emptyCels[l.id] = null;
 
@@ -190,6 +191,7 @@ export function useAnimationStudio() {
           id: makeId('frame'),
           duration: 1,
           cels: emptyCels,
+          ...(refFrame?.storyboard ? { storyboard: { ...refFrame.storyboard } } : {}),
         };
 
         const nextFrames = [...prev.frames];
@@ -220,6 +222,7 @@ export function useAnimationStudio() {
           id: makeId('frame'),
           duration: src.duration,
           cels: { ...src.cels },
+          ...(src.storyboard ? { storyboard: { ...src.storyboard } } : {}),
         };
 
         const nextFrames = [...prev.frames];
@@ -268,7 +271,7 @@ export function useAnimationStudio() {
 
   const setFrameDuration = useCallback(
     (index: number, duration: number) => {
-      const clamped = Math.max(1, Math.min(12, Math.round(duration)));
+      const clamped = Math.max(1, Math.min(48, Math.round(duration)));
       applyWithHistory((prev) => {
         const frame = prev.frames[index];
         if (!frame || frame.duration === clamped) return prev;

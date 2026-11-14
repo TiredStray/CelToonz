@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { CanvasStage } from './components/CanvasStage';
+import { CineGridImportModal } from './components/CineGridImportModal';
 import { ExportWebmModal } from './components/ExportWebmModal';
 import { LayersPanel } from './components/LayersPanel';
 import { MobileDock, MobileSheetType } from './components/MobileDock';
@@ -14,6 +15,8 @@ import { TimelineBar } from './components/TimelineBar';
 import { ToolRail } from './components/ToolRail';
 import { TopBar } from './components/TopBar';
 import { useAnimationStudio } from './hooks/useAnimationStudio';
+import { CineGridParseResult } from './types/animation';
+import { isCineGridJson, parseCineGridJson } from './utils/cinegridImport';
 import { exportProjectToJson, parseProjectFromJson } from './utils/projectJson';
 
 export default function App() {
@@ -61,6 +64,8 @@ export default function App() {
   const [mobileSheet, setMobileSheet] = useState<MobileSheetType>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showCineGridModal, setShowCineGridModal] = useState(false);
+  const [pendingCineGridParse, setPendingCineGridParse] = useState<CineGridParseResult | null>(null);
   const [toast, setToast] = useState<{ text: string; tone: 'info' | 'error' } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +88,7 @@ export default function App() {
         return;
       }
 
-      if (showNewModal || showExportModal) return;
+      if (showNewModal || showExportModal || showCineGridModal) return;
 
       const isMod = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();
@@ -153,6 +158,7 @@ export default function App() {
   }, [
     showNewModal,
     showExportModal,
+    showCineGridModal,
     undo,
     redo,
     setTool,
@@ -174,6 +180,13 @@ export default function App() {
 
     try {
       const text = await file.text();
+      if (isCineGridJson(text)) {
+        const parsedCineGrid = parseCineGridJson(text);
+        setPendingCineGridParse(parsedCineGrid);
+        setShowCineGridModal(true);
+        setMobileSheet(null);
+        return;
+      }
       const imported = parseProjectFromJson(text);
       loadImportedProject(imported);
       setMobileSheet(null);
@@ -213,6 +226,10 @@ export default function App() {
         onLoadDemo={() => {
           loadDemoProject();
           showToast('Loaded 24fps Bouncing Ball demo');
+        }}
+        onOpenCineGrid={() => {
+          setPendingCineGridParse(null);
+          setShowCineGridModal(true);
         }}
         onImportJson={handleImportJsonClick}
         onExportJson={handleExportJson}
@@ -431,6 +448,11 @@ export default function App() {
             setMobileSheet(null);
             showToast('Loaded 24fps Bouncing Ball demo');
           }}
+          onOpenCineGrid={() => {
+            setMobileSheet(null);
+            setPendingCineGridParse(null);
+            setShowCineGridModal(true);
+          }}
           onImportJson={handleImportJsonClick}
           onExportJson={() => {
             handleExportJson();
@@ -454,6 +476,19 @@ export default function App() {
         open={showExportModal}
         project={project}
         onClose={() => setShowExportModal(false)}
+      />
+
+      <CineGridImportModal
+        open={showCineGridModal}
+        initialParsed={pendingCineGridParse}
+        onClose={() => {
+          setShowCineGridModal(false);
+          setPendingCineGridParse(null);
+        }}
+        onImported={(importedProj, summaryText) => {
+          loadImportedProject(importedProj);
+          showToast(summaryText);
+        }}
       />
     </div>
   );

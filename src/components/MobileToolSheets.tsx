@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Clapperboard,
   FileJson,
   FolderOpen,
   Grid3X3,
@@ -199,6 +200,7 @@ interface MobileProjectContentProps {
   dimensionsLabel: string;
   onNewCanvas: () => void;
   onLoadDemo: () => void;
+  onOpenCineGrid: () => void;
   onImportJson: () => void;
   onExportJson: () => void;
 }
@@ -208,6 +210,7 @@ export const MobileProjectContent: React.FC<MobileProjectContentProps> = ({
   dimensionsLabel,
   onNewCanvas,
   onLoadDemo,
+  onOpenCineGrid,
   onImportJson,
   onExportJson,
 }) => {
@@ -236,6 +239,15 @@ export const MobileProjectContent: React.FC<MobileProjectContentProps> = ({
       >
         <Play className="w-4 h-4 text-[#F59E0B]" />
         <span>Load Bouncing Ball Demo</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpenCineGrid}
+        className="w-full min-h-[48px] px-4 rounded-xl bg-[#141417] border border-[#32323A] text-sm font-medium text-[#E4E4E7] flex items-center gap-3"
+      >
+        <Clapperboard className="w-4 h-4 text-[#F59E0B]" />
+        <span>Import Hotshots JSON</span>
       </button>
 
       <button

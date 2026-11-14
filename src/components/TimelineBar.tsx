@@ -123,6 +123,19 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
 
   const totalExposureFrames = frames.reduce((acc, f) => acc + Math.max(1, f.duration), 0);
   const totalSeconds = (totalExposureFrames / 24).toFixed(2);
+  const hasStoryboard = frames.some((f) => Boolean(f.storyboard));
+
+  // Assign alternating Shot group index for clean visual Shot boundary lines
+  const shotGroupIndexByFrame = frames.map((f, idx) => {
+    if (!f.storyboard) return -1;
+    let group = 0;
+    for (let i = 1; i <= idx; i++) {
+      if (frames[i].storyboard?.shotId !== frames[i - 1].storyboard?.shotId) {
+        group++;
+      }
+    }
+    return group;
+  });
 
   useEffect(() => {
     const activeBtn = stripRef.current?.querySelector(
@@ -283,7 +296,7 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
                 onClick={() =>
                   onSetFrameDuration(currentFrameIndex, currentFrame.duration + 1)
                 }
-                disabled={currentFrame.duration >= 12}
+                disabled={currentFrame.duration >= 48}
                 aria-label="Increase frame hold"
                 className="w-6 h-6 rounded hover:bg-[#26262C] text-[#E4E4E7] disabled:opacity-35 text-xs font-mono-tabular cursor-pointer"
               >
@@ -325,52 +338,99 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
         </div>
       </div>
 
+      {/* Active Storyboard Shot / SubShot Notes Strip */}
+      {hasStoryboard && currentFrame?.storyboard && (
+        <div className="px-4 py-1.5 border-b border-[#2A2A32] bg-[#18181C] flex items-center gap-3 text-xs overflow-hidden shrink-0">
+          <span className="font-mono-tabular font-semibold text-[#F59E0B] whitespace-nowrap shrink-0">
+            {currentFrame.storyboard.shotNumber}
+            {currentFrame.storyboard.subShotNumber
+              ? ` · ${currentFrame.storyboard.subShotNumber}`
+              : ''}
+          </span>
+          <span className="text-[#E4E4E7] font-medium whitespace-nowrap shrink-0 truncate max-w-[200px]">
+            {currentFrame.storyboard.subShotTitle || currentFrame.storyboard.shotTitle}
+          </span>
+          {currentFrame.storyboard.camera && (
+            <span className="hidden sm:inline font-mono-tabular text-[#38BDF8] whitespace-nowrap shrink-0">
+              {currentFrame.storyboard.camera}
+            </span>
+          )}
+          {currentFrame.storyboard.notes && (
+            <span className="text-[#A1A1AA] truncate">
+              — {currentFrame.storyboard.notes}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Horizontal Scrollable Filmstrip */}
       <div
         ref={stripRef}
-        className="flex-1 px-4 py-2.5 overflow-x-auto studio-scroll flex items-center gap-2.5"
+        className="flex-1 px-4 py-2 overflow-x-auto studio-scroll flex items-center gap-2"
       >
         {frames.map((frame, idx) => {
           const isCurrent = idx === currentFrameIndex;
-          return (
-            <button
-              key={frame.id}
-              type="button"
-              data-frame-index={idx}
-              onClick={() => onSelectFrame(idx)}
-              className={`group relative shrink-0 w-24 h-20 rounded-lg p-1 flex flex-col justify-between transition-all cursor-pointer text-left ${
-                isCurrent
-                  ? 'bg-[#26262C] ring-2 ring-[#F59E0B]'
-                  : 'bg-[#141417] border border-[#32323A] hover:border-[#52525B]'
-              }`}
-            >
-              <div className="w-full flex-1 overflow-hidden rounded bg-neutral-900 flex items-center justify-center">
-                <FrameThumbnail
-                  frame={frame}
-                  layers={layers}
-                  width={width}
-                  height={height}
-                  backgroundColor={backgroundColor}
-                  imageCacheRef={imageCacheRef}
-                  cacheVersion={cacheVersion}
-                />
-              </div>
+          const sb = frame.storyboard;
+          const groupIdx = shotGroupIndexByFrame[idx];
+          const prevShotId = idx > 0 ? frames[idx - 1].storyboard?.shotId : undefined;
+          const isShotStart = Boolean(sb && sb.shotId !== prevShotId);
+          const shotStripeClass =
+            groupIdx % 2 === 0 ? 'bg-[#F59E0B]' : 'bg-[#38BDF8]';
 
-              <div className="flex items-center justify-between px-0.5 pt-1">
-                <span
-                  className={`text-[11px] font-mono-tabular ${
-                    isCurrent ? 'text-[#F59E0B] font-semibold' : 'text-[#A1A1AA]'
-                  }`}
-                >
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                {frame.duration > 1 && (
-                  <span className="text-[10px] font-mono-tabular text-[#71717A]">
-                    ×{frame.duration}
-                  </span>
+          return (
+            <React.Fragment key={frame.id}>
+              {isShotStart && idx > 0 && (
+                <div
+                  aria-hidden="true"
+                  className="h-16 w-px bg-[#3F3F46] shrink-0 mx-0.5"
+                />
+              )}
+              <button
+                type="button"
+                data-frame-index={idx}
+                onClick={() => onSelectFrame(idx)}
+                className={`group relative shrink-0 w-26 h-20 rounded-lg p-1 flex flex-col justify-between transition-all cursor-pointer text-left overflow-hidden ${
+                  isCurrent
+                    ? 'bg-[#26262C] ring-2 ring-[#F59E0B]'
+                    : 'bg-[#141417] border border-[#32323A] hover:border-[#52525B]'
+                }`}
+              >
+                {sb && (
+                  <div
+                    className={`w-full h-0.5 rounded-full mb-1 shrink-0 ${shotStripeClass}`}
+                  />
                 )}
-              </div>
-            </button>
+
+                <div className="w-full flex-1 overflow-hidden rounded bg-neutral-900 flex items-center justify-center">
+                  <FrameThumbnail
+                    frame={frame}
+                    layers={layers}
+                    width={width}
+                    height={height}
+                    backgroundColor={backgroundColor}
+                    imageCacheRef={imageCacheRef}
+                    cacheVersion={cacheVersion}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between px-0.5 pt-1 gap-1">
+                  <span
+                    className={`text-[10px] font-mono-tabular truncate ${
+                      isCurrent ? 'text-[#F59E0B] font-semibold' : 'text-[#A1A1AA]'
+                    }`}
+                  >
+                    {sb
+                      ? `${sb.shotNumber}${sb.subShotNumber ? `·${sb.subShotNumber}` : ''}`
+                      : String(idx + 1).padStart(2, '0')}
+                  </span>
+                  {frame.duration > 1 && (
+                    <span className="text-[10px] font-mono-tabular text-[#71717A] shrink-0">
+                      ×{frame.duration}
+                    </span>
+                  )}
+                </div>
+              </button>
+            </React.Fragment>
           );
         })}
 
