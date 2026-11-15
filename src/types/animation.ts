@@ -62,6 +62,36 @@ export interface OnionSkinState {
   opacity: number; // 0.1 to 0.7
 }
 
+export interface ShiftTraceTransform {
+  offsetX: number; // canvas px
+  offsetY: number; // canvas px
+  rotationDeg: number; // -180 to 180
+  scale: number; // 0.25 to 3
+}
+
+export interface ShiftTraceState {
+  editing: boolean;
+  activeTarget: 'prev' | 'next';
+  prev: ShiftTraceTransform;
+  next: ShiftTraceTransform;
+}
+
+export const DEFAULT_SHIFT_TRANSFORM: ShiftTraceTransform = {
+  offsetX: 0,
+  offsetY: 0,
+  rotationDeg: 0,
+  scale: 1,
+};
+
+export function isShiftTransformActive(t: ShiftTraceTransform): boolean {
+  return (
+    Math.abs(t.offsetX) > 0.25 ||
+    Math.abs(t.offsetY) > 0.25 ||
+    Math.abs(t.rotationDeg) > 0.1 ||
+    Math.abs(t.scale - 1) > 0.005
+  );
+}
+
 export interface ViewportState {
   scale: number;
   offsetX: number;

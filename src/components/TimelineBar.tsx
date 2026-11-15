@@ -4,13 +4,20 @@ import {
   ChevronRight,
   CopyPlus,
   Layers,
+  Move,
   Pause,
   Play,
   Plus,
   Repeat,
   Trash2,
 } from 'lucide-react';
-import { Frame, Layer, OnionSkinState } from '../types/animation';
+import {
+  Frame,
+  isShiftTransformActive,
+  Layer,
+  OnionSkinState,
+  ShiftTraceState,
+} from '../types/animation';
 import { renderCompositeFrameSync } from '../utils/canvasDrawing';
 
 interface FrameThumbnailProps {
@@ -83,6 +90,7 @@ interface TimelineBarProps {
   isPlaying: boolean;
   loopPlayback: boolean;
   onionSkin: OnionSkinState;
+  shiftTrace: ShiftTraceState;
   imageCacheRef: React.MutableRefObject<Map<string, HTMLImageElement>>;
   cacheVersion: number;
   onSelectFrame: (index: number) => void;
@@ -93,6 +101,7 @@ interface TimelineBarProps {
   onDeleteFrame: () => void;
   onSetFrameDuration: (index: number, duration: number) => void;
   onUpdateOnionSkin: React.Dispatch<React.SetStateAction<OnionSkinState>>;
+  onToggleShiftTrace: () => void;
   inMobileSheet?: boolean;
 }
 
@@ -106,6 +115,7 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
   isPlaying,
   loopPlayback,
   onionSkin,
+  shiftTrace,
   imageCacheRef,
   cacheVersion,
   onSelectFrame,
@@ -116,6 +126,7 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
   onDeleteFrame,
   onSetFrameDuration,
   onUpdateOnionSkin,
+  onToggleShiftTrace,
   inMobileSheet = false,
 }) => {
   const stripRef = useRef<HTMLDivElement>(null);
@@ -272,6 +283,24 @@ export const TimelineBar: React.FC<TimelineBarProps> = ({
               Next
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={onToggleShiftTrace}
+            title="Shift & Trace Ghost Frames (S)"
+            aria-pressed={shiftTrace.editing}
+            className={`h-8 px-2.5 rounded-md border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+              shiftTrace.editing
+                ? 'bg-[#F59E0B] border-[#F59E0B] text-[#141417] font-semibold'
+                : isShiftTransformActive(shiftTrace.prev) ||
+                  isShiftTransformActive(shiftTrace.next)
+                ? 'bg-[#26262C] border-[#F59E0B]/50 text-[#F59E0B]'
+                : 'bg-[#141417] border-[#32323A] text-[#A1A1AA] hover:text-[#E4E4E7]'
+            }`}
+          >
+            <Move className="w-3.5 h-3.5" />
+            <span>Shift & Trace</span>
+          </button>
 
           {/* Exposure Hold Control */}
           {currentFrame && (

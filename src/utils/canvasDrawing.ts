@@ -1,4 +1,4 @@
-import { Frame, Layer, ToolType } from '../types/animation';
+import { Frame, Layer, ShiftTraceTransform, ToolType } from '../types/animation';
 
 export interface StrokePoint {
   x: number;
@@ -318,7 +318,8 @@ export function renderTintedFrameSync(
   layers: Layer[],
   tintColor: string,
   tintAlpha: number,
-  imageCache: Map<string, HTMLImageElement>
+  imageCache: Map<string, HTMLImageElement>,
+  transform?: ShiftTraceTransform
 ) {
   if (tintAlpha <= 0) return;
 
@@ -355,6 +356,15 @@ export function renderTintedFrameSync(
 
   targetCtx.save();
   targetCtx.globalAlpha = tintAlpha;
-  targetCtx.drawImage(scratchCanvas, 0, 0, width, height);
+  if (transform) {
+    const cx = width / 2;
+    const cy = height / 2;
+    targetCtx.translate(cx + transform.offsetX, cy + transform.offsetY);
+    targetCtx.rotate((transform.rotationDeg * Math.PI) / 180);
+    targetCtx.scale(transform.scale, transform.scale);
+    targetCtx.drawImage(scratchCanvas, -cx, -cy, width, height);
+  } else {
+    targetCtx.drawImage(scratchCanvas, 0, 0, width, height);
+  }
   targetCtx.restore();
 }

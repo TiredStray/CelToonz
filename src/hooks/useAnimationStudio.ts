@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  DEFAULT_SHIFT_TRANSFORM,
   Frame,
   Layer,
   OnionSkinState,
   Project,
+  ShiftTraceState,
+  ShiftTraceTransform,
   ToolState,
   ToolType,
   ViewportState,
@@ -33,6 +36,13 @@ export function useAnimationStudio() {
     prevFrames: 1,
     nextFrames: 1,
     opacity: 0.35,
+  });
+
+  const [shiftTrace, setShiftTrace] = useState<ShiftTraceState>({
+    editing: false,
+    activeTarget: 'prev',
+    prev: { ...DEFAULT_SHIFT_TRANSFORM },
+    next: { ...DEFAULT_SHIFT_TRANSFORM },
   });
 
   const [viewport, setViewport] = useState<ViewportState>({
@@ -445,6 +455,53 @@ export function useAnimationStudio() {
     setViewport({ scale: 1, offsetX: 0, offsetY: 0 });
   }, []);
 
+  const toggleShiftTraceEditing = useCallback(
+    (forceValue?: boolean) => {
+      setIsPlaying(false);
+      setShiftTrace((prev) => {
+        const nextEditing = typeof forceValue === 'boolean' ? forceValue : !prev.editing;
+        if (nextEditing) {
+          setOnionSkin((o) => ({
+            ...o,
+            enabled: true,
+            prevFrames: prev.activeTarget === 'prev' ? Math.max(1, o.prevFrames) : o.prevFrames,
+            nextFrames: prev.activeTarget === 'next' ? Math.max(1, o.nextFrames) : o.nextFrames,
+          }));
+        }
+        return { ...prev, editing: nextEditing };
+      });
+    },
+    []
+  );
+
+  const setShiftTarget = useCallback((target: 'prev' | 'next') => {
+    setShiftTrace((prev) => ({ ...prev, activeTarget: target }));
+    setOnionSkin((o) => ({
+      ...o,
+      enabled: true,
+      prevFrames: target === 'prev' ? Math.max(1, o.prevFrames) : o.prevFrames,
+      nextFrames: target === 'next' ? Math.max(1, o.nextFrames) : o.nextFrames,
+    }));
+  }, []);
+
+  const updateShiftTransform = useCallback(
+    (target: 'prev' | 'next', patch: Partial<ShiftTraceTransform>) => {
+      setShiftTrace((prev) => ({
+        ...prev,
+        [target]: { ...prev[target], ...patch },
+      }));
+    },
+    []
+  );
+
+  const resetShiftTransform = useCallback((target: 'prev' | 'next' | 'both' = 'both') => {
+    setShiftTrace((prev) => ({
+      ...prev,
+      prev: target === 'prev' || target === 'both' ? { ...DEFAULT_SHIFT_TRANSFORM } : prev.prev,
+      next: target === 'next' || target === 'both' ? { ...DEFAULT_SHIFT_TRANSFORM } : prev.next,
+    }));
+  }, []);
+
   return {
     project,
     canUndo: past.length > 0,
@@ -454,6 +511,12 @@ export function useAnimationStudio() {
     setTool,
     onionSkin,
     setOnionSkin,
+    shiftTrace,
+    setShiftTrace,
+    toggleShiftTraceEditing,
+    setShiftTarget,
+    updateShiftTransform,
+    resetShiftTransform,
     viewport,
     setViewport,
     resetViewport,

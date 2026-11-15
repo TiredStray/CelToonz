@@ -60,6 +60,7 @@ npm run preview  # Preview production build
 | `Space` + Drag | Temporary Pan without switching tools |
 | Mouse Wheel | Zoom in / out |
 | `O` | Toggle Onion Skinning |
+| `S` | Toggle Shift & Trace peg editing mode (`Esc` returns to drawing) |
 | `P` | Play / Pause 24fps playback |
 | `,` or `←` | Previous frame |
 | `.` or `→` | Next frame |
@@ -70,6 +71,9 @@ npm run preview  # Preview production build
 - **Layers**: Layers stack bottom-to-top in render order (shown top-down in the Layers panel). Double-click any layer name on desktop to rename it. Lock a layer to protect roughs or storyboards from accidental strokes.
 - **Exposure Holds (`1f–48f`)**: Adjust how many `1/24s` frames a drawing holds using the **Hold `-` / `+`** stepper in the timeline bar. Both live playback and WebM export honor hold counts.
 - **Onion Skinning**: Toggle **Prev** (coral-rose `#FB7185`) and **Next** (sky-blue `#38BDF8`) ghost frames independently to trace arcs and spacing accurately.
+- **Shift & Trace (Light-Table Peg Bar)**: Click **Shift & Trace** (or press `S` / tap **Shift** on mobile) to temporarily un-peg the **Prev Ghost** or **Next Ghost** without modifying the original frames:
+  - Drag anywhere on the stage to reposition the ghost, grab the top handle knob (hold `Shift` for `15°` snap) or use two-finger pinch/twist on touchscreens to scale and rotate, or fine-tune via the Peg Bar HUD sliders.
+  - Click **Draw** to lock the shifted ghosts in place and sketch your in-between right over them; click **Re-Peg** anytime to snap ghosts back to `0, 0, 0°`.
 
 ### 3. Importing Hotshots JSON Storyboards
 1. Click **Hotshots JSON** in the top bar (or **Import Hotshots JSON** in the mobile project sheet). You can also pick a Hotshots file directly via **Open JSON**—CelToonz auto-detects the format.
@@ -133,7 +137,7 @@ The importer accepts nested, relational, or flat storyboard arrays using common 
   2. `activeCelCanvas`: The active layer's pixel buffer (supporting live `destination-out` erasing with an `ImageData` backup snapshot for multi-touch cancellation).
   3. `liveStrokeCanvas`: In-progress stroke/shape preview.
   4. `aboveCanvas`: All visible layers above the active layer.
-- **Onion-Skin Tinting**: Previous and next frames are composited onto a scratch canvas and recolored in one GPU-accelerated pass using `globalCompositeOperation = 'source-in'` (`#FB7185` for previous frames, `#38BDF8` for next frames).
+- **Onion-Skin Tinting & Shift & Trace**: Previous and next frames are composited onto a scratch canvas, recolored in one GPU-accelerated pass using `globalCompositeOperation = 'source-in'` (`#FB7185` for previous frames, `#38BDF8` for next frames), and optionally rendered through a center-pivoted 2D affine matrix (`translate → rotate → scale`) when light-table Shift & Trace offsets are active—preserving original frame bitmaps untouched.
 
 ### 4. Deterministic 24fps Exposure-Expanded WebM Encoding
 - **Where**: `exportProjectToWebm` in `src/utils/webmExport.ts`

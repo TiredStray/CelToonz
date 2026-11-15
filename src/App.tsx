@@ -30,6 +30,11 @@ export default function App() {
     setTool,
     onionSkin,
     setOnionSkin,
+    shiftTrace,
+    toggleShiftTraceEditing,
+    setShiftTarget,
+    updateShiftTransform,
+    resetShiftTransform,
     viewport,
     setViewport,
     resetViewport,
@@ -139,6 +144,12 @@ export default function App() {
         case 'o':
           setOnionSkin((prev) => ({ ...prev, enabled: !prev.enabled }));
           break;
+        case 's':
+          toggleShiftTraceEditing();
+          break;
+        case 'escape':
+          if (shiftTrace.editing) toggleShiftTraceEditing(false);
+          break;
         case 'p':
           setIsPlaying((p) => !p);
           break;
@@ -159,6 +170,8 @@ export default function App() {
     showNewModal,
     showExportModal,
     showCineGridModal,
+    shiftTrace.editing,
+    toggleShiftTraceEditing,
     undo,
     redo,
     setTool,
@@ -259,6 +272,11 @@ export default function App() {
             project={project}
             toolState={toolState}
             onionSkin={onionSkin}
+            shiftTrace={shiftTrace}
+            onToggleShiftTrace={toggleShiftTraceEditing}
+            onSetShiftTarget={setShiftTarget}
+            onUpdateShiftTransform={updateShiftTransform}
+            onResetShiftTransform={resetShiftTransform}
             viewport={viewport}
             setViewport={setViewport}
             onResetViewport={resetViewport}
@@ -330,6 +348,7 @@ export default function App() {
         isPlaying={isPlaying}
         loopPlayback={loopPlayback}
         onionSkin={onionSkin}
+        shiftTrace={shiftTrace}
         imageCacheRef={imageCacheRef}
         cacheVersion={cacheVersion}
         onSelectFrame={selectFrame}
@@ -340,6 +359,7 @@ export default function App() {
         onDeleteFrame={() => deleteFrame()}
         onSetFrameDuration={setFrameDuration}
         onUpdateOnionSkin={setOnionSkin}
+        onToggleShiftTrace={() => toggleShiftTraceEditing()}
       />
 
       {/* Mobile Bottom Thumb Dock */}
@@ -400,6 +420,7 @@ export default function App() {
           isPlaying={isPlaying}
           loopPlayback={loopPlayback}
           onionSkin={onionSkin}
+          shiftTrace={shiftTrace}
           imageCacheRef={imageCacheRef}
           cacheVersion={cacheVersion}
           onSelectFrame={selectFrame}
@@ -410,6 +431,10 @@ export default function App() {
           onDeleteFrame={() => deleteFrame()}
           onSetFrameDuration={setFrameDuration}
           onUpdateOnionSkin={setOnionSkin}
+          onToggleShiftTrace={() => {
+            setMobileSheet(null);
+            toggleShiftTraceEditing(true);
+          }}
         />
       </BottomSheet>
 
