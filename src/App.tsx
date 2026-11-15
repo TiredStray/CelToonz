@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { CanvasStage } from './components/CanvasStage';
-import { CineGridImportModal } from './components/CineGridImportModal';
-import { ExportWebmModal } from './components/ExportWebmModal';
 import { LayersPanel } from './components/LayersPanel';
 import { MobileDock, MobileSheetType } from './components/MobileDock';
 import {
@@ -10,7 +8,6 @@ import {
   MobileProjectContent,
   MobileToolsContent,
 } from './components/MobileToolSheets';
-import { ProjectModal } from './components/ProjectModal';
 import { TimelineBar } from './components/TimelineBar';
 import { ToolRail } from './components/ToolRail';
 import { TopBar } from './components/TopBar';
@@ -18,6 +15,22 @@ import { useAnimationStudio } from './hooks/useAnimationStudio';
 import { CineGridParseResult } from './types/animation';
 import { isCineGridJson, parseCineGridJson } from './utils/cinegridImport';
 import { exportProjectToJson, parseProjectFromJson } from './utils/projectJson';
+
+const CineGridImportModal = lazy(() =>
+  import('./components/CineGridImportModal').then((m) => ({
+    default: m.CineGridImportModal,
+  }))
+);
+const ExportWebmModal = lazy(() =>
+  import('./components/ExportWebmModal').then((m) => ({
+    default: m.ExportWebmModal,
+  }))
+);
+const ProjectModal = lazy(() =>
+  import('./components/ProjectModal').then((m) => ({
+    default: m.ProjectModal,
+  }))
+);
 
 export default function App() {
   const studio = useAnimationStudio();
@@ -487,34 +500,42 @@ export default function App() {
       </BottomSheet>
 
       {/* Desktop/Mobile Modals */}
-      <ProjectModal
-        open={showNewModal}
-        initialTitle="Untitled Flipbook"
-        onClose={() => setShowNewModal(false)}
-        onCreateProject={(title, w, h, bg) => {
-          createNewProject(title, w, h, bg);
-          showToast(`Created ${title} (${w}×${h})`);
-        }}
-      />
+      <Suspense fallback={null}>
+        {showNewModal && (
+          <ProjectModal
+            open={showNewModal}
+            initialTitle="Untitled Flipbook"
+            onClose={() => setShowNewModal(false)}
+            onCreateProject={(title, w, h, bg) => {
+              createNewProject(title, w, h, bg);
+              showToast(`Created ${title} (${w}×${h})`);
+            }}
+          />
+        )}
 
-      <ExportWebmModal
-        open={showExportModal}
-        project={project}
-        onClose={() => setShowExportModal(false)}
-      />
+        {showExportModal && (
+          <ExportWebmModal
+            open={showExportModal}
+            project={project}
+            onClose={() => setShowExportModal(false)}
+          />
+        )}
 
-      <CineGridImportModal
-        open={showCineGridModal}
-        initialParsed={pendingCineGridParse}
-        onClose={() => {
-          setShowCineGridModal(false);
-          setPendingCineGridParse(null);
-        }}
-        onImported={(importedProj, summaryText) => {
-          loadImportedProject(importedProj);
-          showToast(summaryText);
-        }}
-      />
+        {showCineGridModal && (
+          <CineGridImportModal
+            open={showCineGridModal}
+            initialParsed={pendingCineGridParse}
+            onClose={() => {
+              setShowCineGridModal(false);
+              setPendingCineGridParse(null);
+            }}
+            onImported={(importedProj, summaryText) => {
+              loadImportedProject(importedProj);
+              showToast(summaryText);
+            }}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

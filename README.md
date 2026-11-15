@@ -24,6 +24,9 @@ npm run build    # Production Vite bundle -> dist/
 npm run preview  # Preview production build
 ```
 
+### Deploying from GitHub to Vercel
+The repository includes `vercel.json` pre-configured for zero-config static Vite deployment (`dist/` output, SPA fallback rewrite, immutable caching on `/assets/*`, and `no-cache` on `index.html`). Push to GitHub, import the repository in Vercel, and deploy—no environment variables are required.
+
 ---
 
 ## User Instructions
